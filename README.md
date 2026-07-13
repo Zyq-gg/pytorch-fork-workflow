@@ -83,6 +83,38 @@ Example:
 2.9.1-dev-aten-fix
 ```
 
+## GitHub Auth And Commit Identity
+
+GitHub authentication and commit identity are separate.
+
+- Authentication controls whether this machine can create repositories and push to GitHub.
+- Commit identity controls how commits are displayed on GitHub, including username and avatar.
+
+For a portable setup on a new machine, use GitHub CLI device login for authentication:
+
+```powershell
+gh auth login --hostname github.com --web
+gh auth status
+```
+
+If `gh` is not installed, install it first from the official GitHub CLI release or package manager for the target system.
+
+Then configure the repository commit identity. To make commits show as the GitHub account avatar, use the account's verified email or GitHub noreply email:
+
+```powershell
+git config user.name "Zyq-gg"
+git config user.email "70554563+Zyq-gg@users.noreply.github.com"
+```
+
+Use repository-local config by default, so project-specific company identities such as `zhuyq <zhuyq@sugon.com>` do not leak into public GitHub skill repositories.
+
+If a commit was created with the wrong identity, fix it before pushing, or amend and force-with-lease if the branch has already been pushed:
+
+```powershell
+git commit --amend --reset-author --no-edit
+git push --force-with-lease
+```
+
 ## Notes
 
 This skill is intentionally workflow-specific. Before using it in another environment, update `SKILL.md` for that repository's path, remote names, branch policy, author identity, and commit message rules.
