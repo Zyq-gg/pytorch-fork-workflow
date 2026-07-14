@@ -123,29 +123,27 @@ zhuyq <zhuyq@sugon.com>
 ## 仓库结构
 
 ```text
-pytorch-fork-workflow/
-  SKILL.md
-  agents/
-    openai.yaml
+SKILL.md
+agents/
+  openai.yaml
+README.md
 ```
 
-真正的 Codex skill 位于 `pytorch-fork-workflow/` 目录。仓库根目录的 `README.md` 只是给人看的说明文档，不属于 skill 本体。
+仓库根目录就是 Codex skill 根目录。`SKILL.md` 和 `agents/openai.yaml` 都放在根目录下，因此在其它环境中直接 clone 到 Codex skills 目录后即可被解析。
 
 ## 安装方式
 
-复制 skill 目录到用户级 Codex skills 目录：
+推荐直接 clone 到用户级 Codex skills 目录：
 
 ```powershell
-Copy-Item -Recurse -Force `
-  .\pytorch-fork-workflow `
+git clone https://github.com/Zyq-gg/pytorch-fork-workflow.git `
   "$env:USERPROFILE\.codex\skills\pytorch-fork-workflow"
 ```
 
-也可以放到项目级 `.codex/skills` 目录：
+也可以 clone 到项目级 `.codex/skills` 目录：
 
 ```powershell
-Copy-Item -Recurse -Force `
-  .\pytorch-fork-workflow `
+git clone https://github.com/Zyq-gg/pytorch-fork-workflow.git `
   C:\path\to\project\.codex\skills\pytorch-fork-workflow
 ```
 
