@@ -106,24 +106,34 @@ git push --force-with-lease
 zhuyq <zhuyq@sugon.com>
 ```
 
-提交信息格式：
+提交信息格式采用 Conventional Commits 风格，并统一加 `[das]` 前缀以区别官方提交：
 
 ```text
-[das-<module>] <short English description>
+[das] type(scope): subject
 ```
+
+- `type`：`feat` / `fix` / `perf` / `refactor` / `docs` / `test` / `build` / `ci` / `chore` 之一。
+- `scope`：模块名或主题，如 `aten`、`inductor`、`runtime`、`build`、`readme`、`license`。
+- `subject`：小写、动词开头，尽量不超过 72 字符。
+- 重要提交补 `Why` / `What` / `Impact` body；`fix` 必须写原因、影响范围和修复点；`perf` 必须写性能指标。
+- 破坏性变更必须写 `BREAKING CHANGE:`。
 
 示例：
 
 ```text
-[das-dynamo] Update HF pretrained test for transformers v5
-[das-aten] Fix matmul dtype fallback
-[das-inductor] Register extension device overrides
+[das] feat(aten): add rmsnorm kernel
+[das] fix(inductor): handle missing rocm combo kernel grid metadata
+[das] perf(aten): optimize simd memory access in swap2d
+[das] build(runtime): enable aicc via USE_AICC
 ```
+
+完整的 type 逐项定义和改写示例见 `COMMIT_CONVENTION.md`。
 
 ## 仓库结构
 
 ```text
 SKILL.md
+COMMIT_CONVENTION.md
 agents/
   openai.yaml
 README.md

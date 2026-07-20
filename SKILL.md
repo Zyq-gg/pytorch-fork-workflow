@@ -240,19 +240,28 @@ Use command-level identity for commits rather than changing global config:
 git -c user.name=zhuyq -c user.email=zhuyq@sugon.com commit --author="zhuyq <zhuyq@sugon.com>" -m "<message>"
 ```
 
-Commit message format:
+Commit message format follows Conventional Commits with a mandatory `[das]` prefix that keeps fork commits distinguishable from upstream ones:
 
 ```text
-[das-<module>] <short English description>
+[das] type(scope): subject
 ```
+
+- `type`: one of `feat` / `fix` / `perf` / `refactor` / `docs` / `test` / `build` / `ci` / `chore`.
+- `scope`: module or topic, e.g. `aten`, `inductor`, `runtime`, `build`, `readme`, `license`.
+- `subject`: lowercase, verb-first, keep under 72 characters.
+- Add a `Why` / `What` / `Impact` body for significant commits. `fix` must state cause, affected scope, and the fix point; `perf` must include a metric (throughput, latency, benchmark before/after).
+- Use a `BREAKING CHANGE:` body line for breaking changes.
 
 Examples:
 
 ```text
-[das-dynamo] Update HF pretrained test for transformers v5
-[das-aten] Fix matmul dtype fallback
-[das-distributed] Avoid uneven allgather device mismatch
+[das] feat(aten): add rmsnorm kernel
+[das] fix(inductor): handle missing rocm combo kernel grid metadata
+[das] perf(aten): optimize simd memory access in swap2d
+[das] build(runtime): enable aicc via USE_AICC
 ```
+
+See `COMMIT_CONVENTION.md` for the full type-by-type definitions and rewrite examples.
 
 Branch naming format:
 
@@ -333,7 +342,7 @@ git status --short --branch
 
 ```powershell
 git add <changed-files>
-git -c user.name=zhuyq -c user.email=zhuyq@sugon.com commit --author="zhuyq <zhuyq@sugon.com>" -m "[das-<module>] <short English description>"
+git -c user.name=zhuyq -c user.email=zhuyq@sugon.com commit --author="zhuyq <zhuyq@sugon.com>" -m "[das] type(scope): subject"
 ```
 
 9. Push only to the fork:
