@@ -246,9 +246,9 @@ Commit message format follows Conventional Commits with a mandatory `[das]` pref
 [das] type(scope): subject
 ```
 
-- `type`: one of `feat` / `fix` / `perf` / `refactor` / `docs` / `test` / `build` / `ci` / `chore`.
+- `type`: recommended set is `feat` / `fix` / `perf` / `refactor` / `docs` / `test` / `build` / `ci` / `chore`.
 - `scope`: module or topic, e.g. `aten`, `inductor`, `runtime`, `build`, `readme`, `license`.
-- `subject`: lowercase, verb-first, keep under 72 characters.
+- `subject`: lowercase, verb-first, aim to keep under 72 characters.
 - Add a `Why` / `What` / `Impact` body for significant commits. `fix` must state cause, affected scope, and the fix point; `perf` must include a metric (throughput, latency, benchmark before/after).
 - Use a `BREAKING CHANGE:` body line for breaking changes.
 

@@ -112,7 +112,7 @@ zhuyq <zhuyq@sugon.com>
 [das] type(scope): subject
 ```
 
-- `type`：`feat` / `fix` / `perf` / `refactor` / `docs` / `test` / `build` / `ci` / `chore` 之一。
+- `type`：建议使用 `feat` / `fix` / `perf` / `refactor` / `docs` / `test` / `build` / `ci` / `chore`。
 - `scope`：模块名或主题，如 `aten`、`inductor`、`runtime`、`build`、`readme`、`license`。
 - `subject`：小写、动词开头，尽量不超过 72 字符。
 - 重要提交补 `Why` / `What` / `Impact` body；`fix` 必须写原因、影响范围和修复点；`perf` 必须写性能指标。
