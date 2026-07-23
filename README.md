@@ -1,6 +1,6 @@
 # PyTorch Fork Workflow Skill
 
-这是一个用于 Codex 的 PyTorch fork 工作流技能。它把本地 PyTorch 仓库、团队主仓和个人 fork 仓之间常用的同步、开发分支、提交和推送流程固化成可复用操作规范。
+这是一个用于 Codex 的 PyTorch fork 工作流技能。它把本地 PyTorch 仓库、团队主仓、个人 fork 仓和 PyTorch 官方仓之间常用的同步、开发分支、提交、推送和官方 release cherry-pick 流程固化成可复用操作规范。
 
 ## 适用场景
 
@@ -12,12 +12,14 @@
 - 只把开发分支推送到个人 fork。
 - 由个人 fork 向团队主仓目标分支创建 MR/PR。
 - 不向团队主仓直接 push 新功能分支。
+- 从 PyTorch 官方仓库 `release/*` 或指定 commit 移植修复到团队分支。
 
 默认约定：
 
 ```text
 origin   个人 fork 仓库
 upstream 团队主仓
+official PyTorch 官方公开仓库：https://github.com/pytorch/pytorch.git
 ```
 
 默认 PyTorch 仓库路径：
@@ -98,6 +100,35 @@ git push --force-with-lease
 
 这样可以更新自己的 MR 分支，同时避免无保护地覆盖远端新提交。
 
+### 5. 从 PyTorch 官方仓库移植提交
+
+适用于“把官方 `release/2.x` 或官方指定 commit 移植到团队 dev 分支”的场景。
+
+技能会指导 Codex：
+
+- 确认 `official` remote 指向 `https://github.com/pytorch/pytorch.git`。
+- 缺少 `official` 时先执行：
+
+```powershell
+git remote add official https://github.com/pytorch/pytorch.git
+git fetch official --prune
+```
+
+- 从团队目标分支创建 fork 工作分支，例如：
+
+```text
+2.13.0-dev-official-release213
+2.13.0-dev-official-release213-picks
+2.10.0-dev-official-fix-topk
+```
+
+- 默认不使用 merge commit 合入官方 release 分支。
+- 对需要的官方提交按顺序执行 `git cherry-pick -x <commit>`，保留官方原作者和原始提交来源。
+- 如果没有冲突，多个官方提交也按顺序逐个 cherry-pick，而不是生成一个 `Merge official release/...` 提交。
+- 如果有冲突，先检查目标分支当前代码结构，再按官方提交语义做最小适配。
+- 只有官方提交无法原样保留时，才改用本地 `[das] type(scope): subject` 适配提交，并在结果里说明原因。
+- 最终只推送到个人 fork 的工作分支，由用户创建 MR。
+
 ## 提交规范
 
 默认提交作者：
@@ -171,6 +202,10 @@ git clone https://github.com/Zyq-gg/pytorch-fork-workflow.git `
 
 ```text
 把官方 commit <hash> 移植到 2.9.1-dev，按团队流程提交并推送到 fork。
+```
+
+```text
+把 official/release/2.13 上多出的提交按 cherry-pick 方式合到 2.13.0-dev 的 fork 工作分支，不要 merge commit。
 ```
 
 ```text

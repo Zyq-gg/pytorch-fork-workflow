@@ -1,13 +1,13 @@
 ---
 name: pytorch-fork-workflow
-description: Use when working in the local PyTorch fork workflow under this project, especially to synchronize the current branch or all branches among upstream main repository, the user's fork remote, and local Git refs, or to apply a fix to a specified target branch and push a development branch to the user's fork for MR/PR. Covers upstream/origin remotes, branch comparison, safe force-with-lease updates, pruning fork-only branches, branch naming, author identity, commit message format, validation, and fork-only push rules.
+description: Use when working in the local PyTorch fork workflow under this project, especially to synchronize the current branch or all branches among upstream main repository, the user's fork remote, and local Git refs, apply a fix to a specified target branch and push a development branch to the user's fork for MR/PR, or import commits from the official PyTorch repository. Covers upstream/origin/official remotes, branch comparison, safe force-with-lease updates, pruning fork-only branches, official release cherry-picks without merge commits, branch naming, author identity, commit message format, validation, and fork-only push rules.
 ---
 
 # PyTorch Fork Workflow
 
 ## Overview
 
-Use this skill for the PyTorch repository fork workflow in this workspace. Treat `upstream` as the team main repository and `origin` as the user's personal fork.
+Use this skill for the PyTorch repository fork workflow in this workspace. Treat `upstream` as the team main repository, `origin` as the user's personal fork, and `official` as the public PyTorch GitHub repository.
 
 Default repository path:
 
@@ -20,6 +20,7 @@ Default remotes:
 ```text
 origin   user's fork
 upstream team main repository
+official public PyTorch repository, https://github.com/pytorch/pytorch.git
 ```
 
 In Codex managed sandboxes, run Git commands that fetch, push, update refs, or write lock files with escalated permissions.
@@ -40,7 +41,15 @@ Confirm that:
 
 - `origin` points to the user's fork.
 - `upstream` points to the team main repository.
+- `official`, when present or needed, points to `https://github.com/pytorch/pytorch.git`.
 - The branch to sync exists on `upstream`.
+
+If official PyTorch commits or release branches are needed and `official` is missing, add it once:
+
+```powershell
+git remote add official https://github.com/pytorch/pytorch.git
+git fetch official --prune
+```
 
 ## Sync Current Branch
 
@@ -215,6 +224,106 @@ git checkout -b <local-branch> origin/<remote-branch>
 ```
 
 If a local branch already exists and must be synchronized to upstream, use the current-branch workflow after checking it out.
+
+## Import Official PyTorch Commits
+
+Use this when the user asks to bring commits from public PyTorch, for example from `official/release/2.13`, into a team development branch such as `upstream/2.13.0-dev` or a fork work branch based on it.
+
+Remote roles:
+
+- `official`: public PyTorch GitHub repository, used only as the source of upstream PyTorch commits.
+- `upstream`: team main repository and MR/PR target.
+- `origin`: user's fork repository and only push target for work branches.
+
+Rules:
+
+- Do not merge `official/release/*` into a team branch with a merge commit unless the user explicitly asks for a merge commit.
+- Prefer cherry-picking the specific official commits needed, so GitLab/GitHub shows the original author and the local committer separately.
+- Use `git cherry-pick -x <commit>` when importing official commits directly; this preserves the original commit message and appends the source commit hash.
+- If the user wants a batch of official commits and there are no conflicts, cherry-pick the list/range in order instead of creating a merge commit.
+- If a cherry-pick conflicts, inspect the target branch's current file layout and adapt the official change to the local code structure. Continue with `git cherry-pick --continue` when preserving the official commit still makes sense.
+- If the target branch has diverged enough that the official commit cannot be meaningfully preserved, stop and explain the mismatch. Then create a local `[das] type(scope): subject` adaptation commit only if the user agrees or the requested workflow clearly allows an adapted backport.
+- Push only the resulting work branch to `origin`. Never push official-import branches to `upstream`.
+
+Recommended workflow:
+
+1. Inspect repository state:
+
+```powershell
+git status --short --branch
+git remote -v
+```
+
+2. Ensure `official` exists and fetch only what is needed:
+
+```powershell
+git remote get-url official
+git fetch official --prune
+```
+
+If `official` is absent:
+
+```powershell
+git remote add official https://github.com/pytorch/pytorch.git
+git fetch official --prune
+```
+
+3. Refresh team and fork remotes:
+
+```powershell
+git fetch upstream --prune
+git fetch origin --prune
+```
+
+4. Create a fork work branch from the team target branch:
+
+```powershell
+git checkout -b <target-branch>-official-<topic> upstream/<target-branch>
+```
+
+Examples:
+
+```text
+2.13.0-dev-official-release213
+2.13.0-dev-official-release213-picks
+2.10.0-dev-official-fix-topk
+```
+
+5. Cherry-pick the official commits in chronological order:
+
+```powershell
+git cherry-pick -x <official-commit>
+```
+
+For multiple commits, list them explicitly in the intended order:
+
+```powershell
+git cherry-pick -x <oldest-commit> <next-commit> <newest-commit>
+```
+
+6. Validate:
+
+```powershell
+git diff --check
+git log --oneline upstream/<target-branch>..HEAD
+```
+
+Run targeted tests when the imported change has clear test coverage.
+
+7. Push only to the fork:
+
+```powershell
+git push -u origin <work-branch>
+```
+
+8. Report:
+
+- Official source branch or commit range.
+- Team target branch.
+- Fork work branch.
+- Whether commits were direct cherry-picks with original authors preserved or adapted `[das]` commits.
+- Conflicts and resolution notes.
+- Validation results.
 
 ## Apply Fix And Push Branch
 

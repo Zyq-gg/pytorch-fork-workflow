@@ -1,4 +1,4 @@
 interface:
   display_name: "PyTorch Fork Workflow"
-  short_description: "Sync PyTorch branches and push fork PR branches."
-  default_prompt: "Use $pytorch-fork-workflow to sync branches or push a PyTorch fix branch to my fork."
+  short_description: "Sync PyTorch forks and import official commits."
+  default_prompt: "Use $pytorch-fork-workflow to sync branches, import official PyTorch commits, or push a PyTorch fix branch to my fork."
