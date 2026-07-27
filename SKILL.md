@@ -340,13 +340,13 @@ Team workflow rules:
 Default commit identity:
 
 ```text
-zhuyq <zhuyq@sugon.com>
+zhuyq <zyq_bravery@163.com>
 ```
 
 Use command-level identity for commits rather than changing global config:
 
 ```powershell
-git -c user.name=zhuyq -c user.email=zhuyq@sugon.com commit --author="zhuyq <zhuyq@sugon.com>" -m "<message>"
+git -c user.name=zhuyq -c user.email=zyq_bravery@163.com commit --author="zhuyq <zyq_bravery@163.com>" -m "<message>"
 ```
 
 Commit message format follows Conventional Commits with a mandatory `[das]` prefix that keeps fork commits distinguishable from upstream ones:
@@ -451,7 +451,7 @@ git status --short --branch
 
 ```powershell
 git add <changed-files>
-git -c user.name=zhuyq -c user.email=zhuyq@sugon.com commit --author="zhuyq <zhuyq@sugon.com>" -m "[das] type(scope): subject"
+git -c user.name=zhuyq -c user.email=zyq_bravery@163.com commit --author="zhuyq <zyq_bravery@163.com>" -m "[das] type(scope): subject"
 ```
 
 9. Push only to the fork:

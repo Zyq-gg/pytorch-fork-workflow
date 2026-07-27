@@ -134,7 +134,7 @@ git fetch official --prune
 默认提交作者：
 
 ```text
-zhuyq <zhuyq@sugon.com>
+zhuyq <zyq_bravery@163.com>
 ```
 
 提交信息格式采用 Conventional Commits 风格，并统一加 `[das]` 前缀以区别官方提交：
