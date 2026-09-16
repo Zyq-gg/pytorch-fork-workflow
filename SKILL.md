@@ -103,16 +103,16 @@ Expected verification for both `rev-list` commands is:
 
 ## Sync All Branches
 
-Use this when the user asks to make the fork remote match the main repository across all branches. In this workflow, "local" normally means the local remote-tracking refs (`upstream/*` and `origin/*`) plus the currently checked-out local branch; do not create hundreds of local branches unless the user explicitly asks.
+Use this when the user asks to synchronize the main repository and fork repository across branches. By default, only same-name branches that exist on both `upstream` and `origin` are synchronized. In this workflow, "local" normally means the local remote-tracking refs (`upstream/*` and `origin/*`) plus the currently checked-out local branch; do not create hundreds of local branches unless the user explicitly asks.
 
 This operation may:
 
 - Update fork branches to match `upstream`.
 - Force-update fork branches that diverged from `upstream`.
-- Create fork branches missing from `origin`.
-- Delete fork branches that do not exist on `upstream`.
+- Report upstream branches missing from `origin` without creating them.
+- Report fork-only branches without deleting or otherwise changing them.
 
-Before deleting fork-only branches or force-updating diverged branches, report the planned changes and ask for confirmation unless the user has already clearly said the fork is only theirs and should be fully synchronized to `upstream`.
+Only create a missing branch or delete a fork-only branch when the user explicitly names that operation or confirms it after the report. Before force-updating a diverged same-name branch, report the planned changes and ask for confirmation unless the user has clearly requested that synchronization.
 
 1. Refresh both remotes:
 
@@ -153,26 +153,24 @@ $different
 $extra
 ```
 
-3. Synchronize missing and different fork branches to upstream:
+3. Synchronize only same-name, different fork branches to upstream, after confirmation when required:
 
 ```powershell
-$toSync = @($upMap.Keys | Where-Object { (-not $orMap.ContainsKey($_)) -or ($orMap[$_] -ne $upMap[$_]) } | Sort-Object)
+$toSync = @($upMap.Keys | Where-Object { $orMap.ContainsKey($_) -and $orMap[$_] -ne $upMap[$_] } | Sort-Object)
 
 foreach ($b in $toSync) {
-  if ($orMap.ContainsKey($b)) {
-    git push --force-with-lease="refs/heads/$b`:$($orMap[$b])" origin "refs/remotes/upstream/$b`:refs/heads/$b"
-  } else {
-    git push origin "refs/remotes/upstream/$b`:refs/heads/$b"
-  }
+  git push --force-with-lease="refs/heads/$b`:$($orMap[$b])" origin "refs/remotes/upstream/$b`:refs/heads/$b"
 }
 ```
 
-4. Delete fork branches that do not exist on upstream, only after confirmation:
+4. Do not create missing branches or delete fork-only branches during the default synchronization. If explicitly requested, handle them as separate, named operations:
 
 ```powershell
-foreach ($b in $extra) {
-  git push origin --delete $b
-}
+# Explicitly create a named missing branch only when requested:
+# git push origin "refs/remotes/upstream/<branch>`:refs/heads/<branch>"
+
+# Explicitly delete a named fork-only branch only when requested:
+# git push origin --delete <branch>
 ```
 
 5. Refresh and verify final equality:
@@ -207,13 +205,13 @@ $extra = @($orMap.Keys | Where-Object { -not $upMap.ContainsKey($_) } | Sort-Obj
 git status --short --branch
 ```
 
-Expected verification:
+Expected verification for synchronized same-name branches:
 
 ```text
-missing on origin: 0
-different on origin: 0
-extra on origin: 0
+difference on synchronized same-name branches: 0
 ```
+
+The `missing on origin` and `extra on origin` counts are informational and may be nonzero. Always list them in the report and state that no action was taken unless the user explicitly requested branch creation or deletion.
 
 ## Local Branches
 
