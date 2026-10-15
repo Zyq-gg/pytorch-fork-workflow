@@ -18,10 +18,24 @@ C:\Users\zhuyq\Desktop\file\code\fork\pytorch
 Default remotes:
 
 ```text
-origin   user's fork
-upstream team main repository
-official public PyTorch repository, https://github.com/pytorch/pytorch.git
+origin   user's fork: http://42.228.13.241:10068/zhuyq/pytorch.git
+upstream team main repository: http://42.228.13.241:10068/dcutoolkit/deeplearing/pytorch.git
+official public PyTorch repository: https://github.com/pytorch/pytorch.git
 ```
+
+These URLs are the source of truth for this workflow. When initializing a new
+local PyTorch repository, or when a remote is missing or incorrect, configure
+the remotes as follows:
+
+```powershell
+git remote add origin http://42.228.13.241:10068/zhuyq/pytorch.git
+git remote add upstream http://42.228.13.241:10068/dcutoolkit/deeplearing/pytorch.git
+git remote add official https://github.com/pytorch/pytorch.git
+```
+
+If a named remote already exists, verify it with `git remote get-url <name>` and
+use `git remote set-url <name> <url>` when it does not match. Only `origin` is a
+push target; never push work branches to `upstream` or `official`.
 
 In Codex managed sandboxes, run Git commands that fetch, push, update refs, or write lock files with escalated permissions.
 
@@ -39,8 +53,8 @@ Stop and ask before syncing if the worktree has uncommitted changes, unless the 
 
 Confirm that:
 
-- `origin` points to the user's fork.
-- `upstream` points to the team main repository.
+- `origin` points to `http://42.228.13.241:10068/zhuyq/pytorch.git`.
+- `upstream` points to `http://42.228.13.241:10068/dcutoolkit/deeplearing/pytorch.git`.
 - `official`, when present or needed, points to `https://github.com/pytorch/pytorch.git`.
 - The branch to sync exists on `upstream`.
 

@@ -17,10 +17,22 @@
 默认约定：
 
 ```text
-origin   个人 fork 仓库
-upstream 团队主仓
+origin   个人 fork 仓库：http://42.228.13.241:10068/zhuyq/pytorch.git
+upstream 团队主仓：http://42.228.13.241:10068/dcutoolkit/deeplearing/pytorch.git
 official PyTorch 官方公开仓库：https://github.com/pytorch/pytorch.git
 ```
+
+以上地址是本工作流的固定默认配置。初始化新仓库或发现 remote 缺失时，使用：
+
+```bash
+git remote add origin http://42.228.13.241:10068/zhuyq/pytorch.git
+git remote add upstream http://42.228.13.241:10068/dcutoolkit/deeplearing/pytorch.git
+git remote add official https://github.com/pytorch/pytorch.git
+```
+
+如果同名 remote 已存在，先用 `git remote get-url <name>` 核对，地址不一致时
+使用 `git remote set-url <name> <url>` 修正。只有 `origin` 用作推送目标，不向
+`upstream` 或 `official` 推送工作分支。
 
 默认 PyTorch 仓库路径：
 
