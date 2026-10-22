@@ -371,7 +371,10 @@ Commit message format follows Conventional Commits with a mandatory `[das]` pref
 - `scope`: module or topic, e.g. `aten`, `inductor`, `runtime`, `build`, `readme`, `license`.
 - `subject`: lowercase, verb-first, aim to keep under 72 characters.
 - Add a `Why` / `What` / `Impact` body for significant commits. `fix` must state cause, affected scope, and the fix point; `perf` must include a metric (throughput, latency, benchmark before/after).
+- For locally authored commits, write each explanatory body paragraph in English and immediately follow it with an equivalent Chinese translation. Pair the `Why` / `What` / `Impact` sections individually; do not replace the English text with a Chinese-only summary. Preserve the original message when cherry-picking official commits.
 - Use a `BREAKING CHANGE:` body line for breaking changes.
+
+For example, a body section should use `Why: ...` followed by `原因：...`, then `What: ...` followed by `修改：...`, and `Impact: ...` followed by `影响：...`.
 
 Examples:
 

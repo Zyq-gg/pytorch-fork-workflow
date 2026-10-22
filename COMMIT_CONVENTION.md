@@ -17,6 +17,7 @@
 - scope 使用模块名或整改主题，如 aten、torch、inductor、runtime、build、readme、license、notice
 - subject 必须小写、动词开头，尽量不超过 72 字符
 - 重要提交应补 Why / What / Impact body
+- 本地撰写的 commit 正文每段先写英文，再紧跟语义对应的中文翻译；Why / What / Impact 分别配对，如 `Why: ...` 后接 `原因：...`、`What: ...` 后接 `修改：...`、`Impact: ...` 后接 `影响：...`。不能只附一段笼统的中文总结。直接 cherry-pick 官方提交时保留原提交信息。
 - fix 提交必须写原因、影响范围和修复点
 - perf 提交必须写性能指标，如 throughput、latency、benchmark 前后对比
 - 如有破坏性变更，必须写 BREAKING CHANGE:

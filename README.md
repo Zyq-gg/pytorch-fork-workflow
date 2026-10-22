@@ -159,6 +159,7 @@ zhuyq <zyq_bravery@163.com>
 - `scope`：模块名或主题，如 `aten`、`inductor`、`runtime`、`build`、`readme`、`license`。
 - `subject`：小写、动词开头，尽量不超过 72 字符。
 - 重要提交补 `Why` / `What` / `Impact` body；`fix` 必须写原因、影响范围和修复点；`perf` 必须写性能指标。
+- 本地撰写的正文每段英文后紧跟对应中文翻译，`Why` / `What` / `Impact` 分别配对；直接 cherry-pick 官方提交时保留原信息。
 - 破坏性变更必须写 `BREAKING CHANGE:`。
 
 示例：
