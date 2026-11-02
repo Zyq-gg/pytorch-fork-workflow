@@ -160,6 +160,7 @@ zhuyq <zyq_bravery@163.com>
 - `subject`：小写、动词开头，尽量不超过 72 字符。
 - 重要提交补 `Why` / `What` / `Impact` body；`fix` 必须写原因、影响范围和修复点；`perf` 必须写性能指标。
 - 本地撰写的正文每段英文后紧跟对应中文翻译，`Why` / `What` / `Impact` 分别配对；直接 cherry-pick 官方提交时保留原信息。
+- 不要在本地撰写的提交信息、MR/PR 描述或新增仓库文档中添加 AI 辅助署名、生成声明或类似尾注；使用规定的 Git 作者与提交者身份。
 - 破坏性变更必须写 `BREAKING CHANGE:`。
 
 示例：

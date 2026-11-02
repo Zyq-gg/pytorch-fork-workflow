@@ -18,6 +18,7 @@
 - subject 必须小写、动词开头，尽量不超过 72 字符
 - 重要提交应补 Why / What / Impact body
 - 本地撰写的 commit 正文每段先写英文，再紧跟语义对应的中文翻译；Why / What / Impact 分别配对，如 `Why: ...` 后接 `原因：...`、`What: ...` 后接 `修改：...`、`Impact: ...` 后接 `影响：...`。不能只附一段笼统的中文总结。直接 cherry-pick 官方提交时保留原提交信息。
+- 不要在本地撰写的提交信息、MR/PR 描述或新增仓库文档中添加 AI 辅助署名、生成声明或类似尾注；使用规定的 Git 作者与提交者身份。
 - fix 提交必须写原因、影响范围和修复点
 - perf 提交必须写性能指标，如 throughput、latency、benchmark 前后对比
 - 如有破坏性变更，必须写 BREAKING CHANGE:
