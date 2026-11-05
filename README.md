@@ -14,25 +14,23 @@
 - 不向团队主仓直接 push 新功能分支。
 - 从 PyTorch 官方仓库 `release/*` 或指定 commit 移植修复到团队分支。
 
-默认约定：
+后续 GitHub 开发默认使用以下 PyTorch 代码仓 remote：
 
 ```text
-origin   个人 fork 仓库：http://42.228.13.241:10068/zhuyq/pytorch.git
-upstream 团队主仓：http://42.228.13.241:10068/dcutoolkit/deeplearing/pytorch.git
+hygon-public 团队主仓：https://github.com/HYGON-AI/pytorch-das.git
+github-fork  个人 fork：https://github.com/Zyq-gg/pytorch-das.git
 official PyTorch 官方公开仓库：https://github.com/pytorch/pytorch.git
 ```
 
-以上地址是本工作流的固定默认配置。初始化新仓库或发现 remote 缺失时，使用：
+旧内网代码仓 `upstream`（`http://42.228.13.241:10068/dcutoolkit/deeplearing/pytorch.git`）和 `origin`（`http://42.228.13.241:10068/zhuyq/pytorch.git`）继续保留，仅在用户明确选择旧流程时使用。两个 GitHub PyTorch 代码仓与 `official` 是不同仓库，也都不是本 skill 仓库。检查 `git remote -v` 后，仅为缺失的 remote 添加对应地址：
 
 ```bash
-git remote add origin http://42.228.13.241:10068/zhuyq/pytorch.git
-git remote add upstream http://42.228.13.241:10068/dcutoolkit/deeplearing/pytorch.git
+git remote add hygon-public https://github.com/HYGON-AI/pytorch-das.git
+git remote add github-fork https://github.com/Zyq-gg/pytorch-das.git
 git remote add official https://github.com/pytorch/pytorch.git
 ```
 
-如果同名 remote 已存在，先用 `git remote get-url <name>` 核对，地址不一致时
-使用 `git remote set-url <name> <url>` 修正。只有 `origin` 用作推送目标，不向
-`upstream` 或 `official` 推送工作分支。
+若同名 remote 已存在，先用 `git remote get-url <name>` 核对，不能静默覆盖。新开发从 `hygon-public/<target-branch>` 创建分支，只推送至 `github-fork/<dev-branch>`，由用户向 `HYGON-AI/pytorch-das:<target-branch>` 提 PR；不得推送到主仓或 `official`。提交规范保持不变。本 skill 仓库自己的 `origin` 是 `https://github.com/Zyq-gg/pytorch-fork-workflow.git`，仅用于发布工作流文档，不能与 PyTorch 代码仓混用。
 
 默认 PyTorch 仓库路径：
 
@@ -50,9 +48,9 @@ C:\Users\zhuyq\Desktop\file\code\fork\pytorch
 
 - 检查工作区是否干净。
 - 确认当前分支名。
-- 拉取 `upstream` 和 `origin` 最新状态。
-- 使用 `git merge --ff-only upstream/<branch>` 快进本地分支。
-- 将同步后的分支推送到 `origin`。
+- 拉取 `hygon-public` 和 `github-fork` 最新状态。
+- 使用 `git merge --ff-only hygon-public/<branch>` 快进本地分支。
+- 将同步后的分支推送到 `github-fork`。
 - 使用 `git rev-list --left-right --count` 验证三方一致。
 
 如果本地分支和主仓分叉，技能要求先停止并展示差异，不自动强推。
@@ -63,11 +61,11 @@ C:\Users\zhuyq\Desktop\file\code\fork\pytorch
 
 技能会指导 Codex：
 
-- 比较 `upstream/*` 和 `origin/*` 的分支集合。
+- 比较 `hygon-public/*` 和 `github-fork/*` 的分支集合。
 - 找出 fork 缺失的主仓分支。
 - 找出 fork 与主仓 commit 不一致的分支。
 - 找出只存在于 fork 的工作分支。
-- 对缺失或落后的 fork 分支执行同步。
+- 默认只同步主仓与 fork 已有的同名分支；缺失分支先报告，不自动创建。
 - 对分叉分支使用 `--force-with-lease`，避免覆盖别人刚推的新内容。
 - 删除 fork-only 分支前必须明确确认。
 
@@ -79,7 +77,7 @@ C:\Users\zhuyq\Desktop\file\code\fork\pytorch
 
 技能会指导 Codex：
 
-- 从 `upstream/<target-branch>` 创建新的开发分支。
+- 从 `hygon-public/<target-branch>` 创建新的开发分支。
 - 分支名带上目标分支信息，例如：
 
 ```text
@@ -99,18 +97,18 @@ pytest <target-test>
 ```
 
 - 使用指定作者身份提交。
-- 只推送到 `origin/<dev-branch>`。
+- 只推送到 `github-fork/<dev-branch>`。
 - 最后给出 MR/PR 源分支和目标分支信息。
 
-### 4. 保护打开中的 MR 分支
+### 4. 保护打开中的 PR 分支
 
-当一个 fork 分支已经创建 MR，但还需要修改提交时，技能会优先使用：
+当一个 fork 分支已经创建 PR，但还需要修改提交时，技能会优先使用：
 
 ```text
 git push --force-with-lease
 ```
 
-这样可以更新自己的 MR 分支，同时避免无保护地覆盖远端新提交。
+这样可以更新自己的 PR 分支，同时避免无保护地覆盖远端新提交。
 
 ### 5. 从 PyTorch 官方仓库移植提交
 
@@ -139,7 +137,7 @@ git fetch official --prune
 - 如果没有冲突，多个官方提交也按顺序逐个 cherry-pick，而不是生成一个 `Merge official release/...` 提交。
 - 如果有冲突，先检查目标分支当前代码结构，再按官方提交语义做最小适配。
 - 只有官方提交无法原样保留时，才改用本地 `[das] type(scope): subject` 适配提交，并在结果里说明原因。
-- 最终只推送到个人 fork 的工作分支，由用户创建 MR。
+- 最终只推送到个人 fork 的工作分支，由用户创建 PR。
 
 ## 提交规范
 

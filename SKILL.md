@@ -1,13 +1,13 @@
 ---
 name: pytorch-fork-workflow
-description: Use when working in the local PyTorch fork workflow under this project, especially to synchronize the current branch or all branches among upstream main repository, the user's fork remote, and local Git refs, apply a fix to a specified target branch and push a development branch to the user's fork for MR/PR, or import commits from the official PyTorch repository. Covers upstream/origin/official remotes, branch comparison, safe force-with-lease updates, pruning fork-only branches, official release cherry-picks without merge commits, branch naming, author identity, commit message format, validation, and fork-only push rules.
+description: "Use for the PyTorch fork workflow: synchronize branches, develop from the team repository, push a work branch to the user's GitHub fork for a PR, or import official PyTorch commits. Covers HYGON-AI/pytorch-das and Zyq-gg/pytorch-das remotes, legacy internal remotes, official PyTorch, branch comparison, safe force-with-lease updates, branch naming, commit conventions, and fork-only pushes."
 ---
 
 # PyTorch Fork Workflow
 
 ## Overview
 
-Use this skill for the PyTorch repository fork workflow in this workspace. Treat `upstream` as the team main repository, `origin` as the user's personal fork, and `official` as the public PyTorch GitHub repository.
+Use this skill for PyTorch source repositories, not for this skill's own Git repository. New development defaults to the GitHub team repository `hygon-public` and the user's GitHub fork `github-fork`; `official` remains the public PyTorch repository. The older internal `upstream`/`origin` pair remains available only when the user explicitly chooses the internal workflow. The commit convention in `COMMIT_CONVENTION.md` is unchanged.
 
 Default repository path:
 
@@ -15,27 +15,32 @@ Default repository path:
 C:\Users\zhuyq\Desktop\file\code\fork\pytorch
 ```
 
-Default remotes:
+GitHub remotes for new development:
 
 ```text
-origin   user's fork: http://42.228.13.241:10068/zhuyq/pytorch.git
-upstream team main repository: http://42.228.13.241:10068/dcutoolkit/deeplearing/pytorch.git
+hygon-public team repository: https://github.com/HYGON-AI/pytorch-das.git
+github-fork  user's fork: https://github.com/Zyq-gg/pytorch-das.git
 official public PyTorch repository: https://github.com/pytorch/pytorch.git
 ```
 
-These URLs are the source of truth for this workflow. When initializing a new
-local PyTorch repository, or when a remote is missing or incorrect, configure
-the remotes as follows:
+Legacy internal remotes, retained without changing their URLs:
+
+```text
+upstream team repository: http://42.228.13.241:10068/dcutoolkit/deeplearing/pytorch.git
+origin   user's fork: http://42.228.13.241:10068/zhuyq/pytorch.git
+```
+
+In a PyTorch source checkout, inspect `git remote -v` before adding missing GitHub remotes. Do not repoint an existing internal remote or assume `origin` means the GitHub fork:
 
 ```powershell
-git remote add origin http://42.228.13.241:10068/zhuyq/pytorch.git
-git remote add upstream http://42.228.13.241:10068/dcutoolkit/deeplearing/pytorch.git
+git remote add hygon-public https://github.com/HYGON-AI/pytorch-das.git
+git remote add github-fork https://github.com/Zyq-gg/pytorch-das.git
 git remote add official https://github.com/pytorch/pytorch.git
 ```
 
-If a named remote already exists, verify it with `git remote get-url <name>` and
-use `git remote set-url <name> <url>` when it does not match. Only `origin` is a
-push target; never push work branches to `upstream` or `official`.
+Add only missing remotes. If a name already exists, verify both URL and intended role with `git remote get-url <name>`; do not silently overwrite it. For new work, fetch the target branch from `hygon-public`, push the development branch only to `github-fork`, and let the user open a PR from `Zyq-gg/pytorch-das:<dev-branch>` to `HYGON-AI/pytorch-das:<target-branch>`. Never push work branches to `hygon-public`, `upstream`, or `official`. Do not push new work to the legacy `origin` unless the user explicitly requests the internal workflow.
+
+The `origin` of this workflow-skill repository is `https://github.com/Zyq-gg/pytorch-fork-workflow.git`; it is unrelated to the PyTorch code remotes above. Editing or publishing this skill never authorizes a push to either PyTorch repository.
 
 In Codex managed sandboxes, run Git commands that fetch, push, update refs, or write lock files with escalated permissions.
 
@@ -53,10 +58,10 @@ Stop and ask before syncing if the worktree has uncommitted changes, unless the 
 
 Confirm that:
 
-- `origin` points to `http://42.228.13.241:10068/zhuyq/pytorch.git`.
-- `upstream` points to `http://42.228.13.241:10068/dcutoolkit/deeplearing/pytorch.git`.
+- `hygon-public` points to `https://github.com/HYGON-AI/pytorch-das.git`.
+- `github-fork` points to `https://github.com/Zyq-gg/pytorch-das.git`.
 - `official`, when present or needed, points to `https://github.com/pytorch/pytorch.git`.
-- The branch to sync exists on `upstream`.
+- The branch to sync exists on `hygon-public`. Do not assume the internal and GitHub repositories have identical branch sets or commit histories; verify the selected base before creating a work branch.
 
 If official PyTorch commits or release branches are needed and `official` is missing, add it once:
 
@@ -78,34 +83,34 @@ $branch = git branch --show-current
 2. Refresh both remotes:
 
 ```powershell
-git fetch upstream --prune
-git fetch origin --prune
+git fetch hygon-public --prune
+git fetch github-fork --prune
 ```
 
-3. Fast-forward the local current branch to the matching upstream branch:
+3. Fast-forward the local current branch to the matching hygon-public branch:
 
 ```powershell
-git merge --ff-only "upstream/$branch"
+git merge --ff-only "hygon-public/$branch"
 ```
 
-If this fails, do not force anything automatically. Explain that local history has diverged from `upstream/$branch`, then inspect with:
+If this fails, do not force anything automatically. Explain that local history has diverged from `hygon-public/$branch`, then inspect with:
 
 ```powershell
-git log --oneline --left-right --graph "upstream/$branch...$branch"
+git log --oneline --left-right --graph "hygon-public/$branch...$branch"
 ```
 
 4. Push the synchronized branch to the user's fork:
 
 ```powershell
-git push origin $branch
+git push github-fork $branch
 ```
 
 5. Refresh and verify:
 
 ```powershell
-git fetch origin --prune
-git rev-list --left-right --count "upstream/$branch...$branch"
-git rev-list --left-right --count "origin/$branch...$branch"
+git fetch github-fork --prune
+git rev-list --left-right --count "hygon-public/$branch...$branch"
+git rev-list --left-right --count "github-fork/$branch...$branch"
 git status --short --branch
 ```
 
@@ -117,13 +122,13 @@ Expected verification for both `rev-list` commands is:
 
 ## Sync All Branches
 
-Use this when the user asks to synchronize the main repository and fork repository across branches. By default, only same-name branches that exist on both `upstream` and `origin` are synchronized. In this workflow, "local" normally means the local remote-tracking refs (`upstream/*` and `origin/*`) plus the currently checked-out local branch; do not create hundreds of local branches unless the user explicitly asks.
+Use this when the user asks to synchronize the main repository and fork repository across branches. By default, only same-name branches that exist on both `hygon-public` and `github-fork` are synchronized. In this workflow, "local" normally means the local remote-tracking refs (`hygon-public/*` and `github-fork/*`) plus the currently checked-out local branch; do not create hundreds of local branches unless the user explicitly asks.
 
 This operation may:
 
-- Update fork branches to match `upstream`.
-- Force-update fork branches that diverged from `upstream`.
-- Report upstream branches missing from `origin` without creating them.
+- Update fork branches to match `hygon-public`.
+- Force-update fork branches that diverged from `hygon-public`.
+- Report hygon-public branches missing from `github-fork` without creating them.
 - Report fork-only branches without deleting or otherwise changing them.
 
 Only create a missing branch or delete a fork-only branch when the user explicitly names that operation or confirms it after the report. Before force-updating a diverged same-name branch, report the planned changes and ask for confirmation unless the user has clearly requested that synchronization.
@@ -131,15 +136,15 @@ Only create a missing branch or delete a fork-only branch when the user explicit
 1. Refresh both remotes:
 
 ```powershell
-git fetch upstream --prune
-git fetch origin --prune
+git fetch hygon-public --prune
+git fetch github-fork --prune
 ```
 
 2. Compare branch sets and commit IDs:
 
 ```powershell
-$up = git for-each-ref --format='%(refname:strip=3) %(objectname)' refs/remotes/upstream | Where-Object { $_ -notmatch '^HEAD ' }
-$or = git for-each-ref --format='%(refname:strip=3) %(objectname)' refs/remotes/origin | Where-Object { $_ -notmatch '^HEAD ' }
+$up = git for-each-ref --format='%(refname:strip=3) %(objectname)' refs/remotes/hygon-public | Where-Object { $_ -notmatch '^HEAD ' }
+$or = git for-each-ref --format='%(refname:strip=3) %(objectname)' refs/remotes/github-fork | Where-Object { $_ -notmatch '^HEAD ' }
 
 $upMap = @{}
 foreach ($line in $up) {
@@ -157,23 +162,23 @@ $missing = @($upMap.Keys | Where-Object { -not $orMap.ContainsKey($_) } | Sort-O
 $different = @($upMap.Keys | Where-Object { $orMap.ContainsKey($_) -and $orMap[$_] -ne $upMap[$_] } | Sort-Object)
 $extra = @($orMap.Keys | Where-Object { -not $upMap.ContainsKey($_) } | Sort-Object)
 
-"upstream branches: $($upMap.Count)"
-"origin branches: $($orMap.Count)"
-"missing on origin: $($missing.Count)"
+"hygon-public branches: $($upMap.Count)"
+"github-fork branches: $($orMap.Count)"
+"missing on github-fork: $($missing.Count)"
 $missing
-"different on origin: $($different.Count)"
+"different on github-fork: $($different.Count)"
 $different
-"extra on origin: $($extra.Count)"
+"extra on github-fork: $($extra.Count)"
 $extra
 ```
 
-3. Synchronize only same-name, different fork branches to upstream, after confirmation when required:
+3. Synchronize only same-name, different fork branches to hygon-public, after confirmation when required:
 
 ```powershell
 $toSync = @($upMap.Keys | Where-Object { $orMap.ContainsKey($_) -and $orMap[$_] -ne $upMap[$_] } | Sort-Object)
 
 foreach ($b in $toSync) {
-  git push --force-with-lease="refs/heads/$b`:$($orMap[$b])" origin "refs/remotes/upstream/$b`:refs/heads/$b"
+  git push --force-with-lease="refs/heads/$b`:$($orMap[$b])" github-fork "refs/remotes/hygon-public/$b`:refs/heads/$b"
 }
 ```
 
@@ -181,19 +186,19 @@ foreach ($b in $toSync) {
 
 ```powershell
 # Explicitly create a named missing branch only when requested:
-# git push origin "refs/remotes/upstream/<branch>`:refs/heads/<branch>"
+# git push github-fork "refs/remotes/hygon-public/<branch>`:refs/heads/<branch>"
 
 # Explicitly delete a named fork-only branch only when requested:
-# git push origin --delete <branch>
+# git push github-fork --delete <branch>
 ```
 
 5. Refresh and verify final equality:
 
 ```powershell
-git fetch origin --prune
+git fetch github-fork --prune
 
-$up = git for-each-ref --format='%(refname:strip=3) %(objectname)' refs/remotes/upstream | Where-Object { $_ -notmatch '^HEAD ' }
-$or = git for-each-ref --format='%(refname:strip=3) %(objectname)' refs/remotes/origin | Where-Object { $_ -notmatch '^HEAD ' }
+$up = git for-each-ref --format='%(refname:strip=3) %(objectname)' refs/remotes/hygon-public | Where-Object { $_ -notmatch '^HEAD ' }
+$or = git for-each-ref --format='%(refname:strip=3) %(objectname)' refs/remotes/github-fork | Where-Object { $_ -notmatch '^HEAD ' }
 
 $upMap = @{}
 foreach ($line in $up) {
@@ -211,11 +216,11 @@ $missing = @($upMap.Keys | Where-Object { -not $orMap.ContainsKey($_) } | Sort-O
 $different = @($upMap.Keys | Where-Object { $orMap.ContainsKey($_) -and $orMap[$_] -ne $upMap[$_] } | Sort-Object)
 $extra = @($orMap.Keys | Where-Object { -not $upMap.ContainsKey($_) } | Sort-Object)
 
-"upstream branches: $($upMap.Count)"
-"origin branches: $($orMap.Count)"
-"missing on origin: $($missing.Count)"
-"different on origin: $($different.Count)"
-"extra on origin: $($extra.Count)"
+"hygon-public branches: $($upMap.Count)"
+"github-fork branches: $($orMap.Count)"
+"missing on github-fork: $($missing.Count)"
+"different on github-fork: $($different.Count)"
+"extra on github-fork: $($extra.Count)"
 git status --short --branch
 ```
 
@@ -225,37 +230,37 @@ Expected verification for synchronized same-name branches:
 difference on synchronized same-name branches: 0
 ```
 
-The `missing on origin` and `extra on origin` counts are informational and may be nonzero. Always list them in the report and state that no action was taken unless the user explicitly requested branch creation or deletion.
+The `missing on github-fork` and `extra on github-fork` counts are informational and may be nonzero. Always list them in the report and state that no action was taken unless the user explicitly requested branch creation or deletion.
 
 ## Local Branches
 
 Do not create local branches for every remote branch during all-branch sync. Local branch creation is only needed when the user wants to work on a specific branch:
 
 ```powershell
-git checkout -b <local-branch> origin/<remote-branch>
+git checkout -b <local-branch> github-fork/<remote-branch>
 ```
 
-If a local branch already exists and must be synchronized to upstream, use the current-branch workflow after checking it out.
+If a local branch already exists and must be synchronized to hygon-public, use the current-branch workflow after checking it out.
 
 ## Import Official PyTorch Commits
 
-Use this when the user asks to bring commits from public PyTorch, for example from `official/release/2.13`, into a team development branch such as `upstream/2.13.0-dev` or a fork work branch based on it.
+Use this when the user asks to bring commits from public PyTorch, for example from `official/release/2.13`, into a team development branch such as `hygon-public/2.13.0-dev` or a fork work branch based on it.
 
 Remote roles:
 
-- `official`: public PyTorch GitHub repository, used only as the source of upstream PyTorch commits.
-- `upstream`: team main repository and MR/PR target.
-- `origin`: user's fork repository and only push target for work branches.
+- `official`: public PyTorch GitHub repository, used only as the source of official PyTorch commits.
+- `hygon-public`: team main repository and MR/PR target.
+- `github-fork`: user's fork repository and only push target for work branches.
 
 Rules:
 
 - Do not merge `official/release/*` into a team branch with a merge commit unless the user explicitly asks for a merge commit.
-- Prefer cherry-picking the specific official commits needed, so GitLab/GitHub shows the original author and the local committer separately.
+- Prefer cherry-picking the specific official commits needed, so GitHub shows the original author and the local committer separately.
 - Use `git cherry-pick -x <commit>` when importing official commits directly; this preserves the original commit message and appends the source commit hash.
 - If the user wants a batch of official commits and there are no conflicts, cherry-pick the list/range in order instead of creating a merge commit.
 - If a cherry-pick conflicts, inspect the target branch's current file layout and adapt the official change to the local code structure. Continue with `git cherry-pick --continue` when preserving the official commit still makes sense.
 - If the target branch has diverged enough that the official commit cannot be meaningfully preserved, stop and explain the mismatch. Then create a local `[das] type(scope): subject` adaptation commit only if the user agrees or the requested workflow clearly allows an adapted backport.
-- Push only the resulting work branch to `origin`. Never push official-import branches to `upstream`.
+- Push only the resulting work branch to `github-fork`. Never push official-import branches to `hygon-public`.
 
 Recommended workflow:
 
@@ -283,14 +288,14 @@ git fetch official --prune
 3. Refresh team and fork remotes:
 
 ```powershell
-git fetch upstream --prune
-git fetch origin --prune
+git fetch hygon-public --prune
+git fetch github-fork --prune
 ```
 
 4. Create a fork work branch from the team target branch:
 
 ```powershell
-git checkout -b <target-branch>-official-<topic> upstream/<target-branch>
+git checkout -b <target-branch>-official-<topic> hygon-public/<target-branch>
 ```
 
 Examples:
@@ -317,7 +322,7 @@ git cherry-pick -x <oldest-commit> <next-commit> <newest-commit>
 
 ```powershell
 git diff --check
-git log --oneline upstream/<target-branch>..HEAD
+git log --oneline hygon-public/<target-branch>..HEAD
 ```
 
 Run targeted tests when the imported change has clear test coverage.
@@ -325,7 +330,7 @@ Run targeted tests when the imported change has clear test coverage.
 7. Push only to the fork:
 
 ```powershell
-git push -u origin <work-branch>
+git push -u github-fork <work-branch>
 ```
 
 8. Report:
@@ -339,15 +344,15 @@ git push -u origin <work-branch>
 
 ## Apply Fix And Push Branch
 
-Use this when the user provides bug analysis, target branch, expected code changes, or a reference upstream commit and asks to modify code, validate it, commit it, and push to the user's fork for MR/PR.
+Use this when the user provides bug analysis, target branch, expected code changes, or a reference commit and asks to modify code, validate it, commit it, and push to the user's fork for a PR.
 
 Team workflow rules:
 
-- Do not push feature branches to `upstream`.
-- Create a new local development branch from the target upstream branch.
+- Do not push feature branches to `hygon-public`.
+- Create a new local development branch from the target hygon-public branch.
 - Commit local changes on the new branch.
-- Push the new branch only to `origin`.
-- The user creates the MR/PR from `origin/<dev-branch>` to `upstream/<target-branch>`.
+- Push the new branch only to `github-fork`.
+- The user creates the GitHub PR from `github-fork/<dev-branch>` to `hygon-public/<target-branch>`.
 
 Default commit identity:
 
@@ -361,7 +366,7 @@ Use command-level identity for commits rather than changing global config:
 git -c user.name=zhuyq -c user.email=zyq_bravery@163.com commit --author="zhuyq <zyq_bravery@163.com>" -m "<message>"
 ```
 
-Commit message format follows Conventional Commits with a mandatory `[das]` prefix that keeps fork commits distinguishable from upstream ones:
+Commit message format follows Conventional Commits with a mandatory `[das]` prefix that keeps fork commits distinguishable from hygon-public ones:
 
 ```text
 [das] type(scope): subject
@@ -402,7 +407,7 @@ Examples:
 2.7.1-dev-distributed
 ```
 
-Prefer a branch name that includes the original target branch prefix, so it remains obvious which upstream branch the MR/PR targets.
+Prefer a branch name that includes the original target branch prefix, so it remains obvious which hygon-public branch the MR/PR targets.
 
 1. Inspect current state before switching:
 
@@ -417,29 +422,29 @@ If there are uncommitted changes on the wrong branch, do not checkout another br
 2. Refresh remotes and confirm the target branch:
 
 ```powershell
-git fetch upstream --prune
-git fetch origin --prune
-git rev-parse --short upstream/<target-branch>
+git fetch hygon-public --prune
+git fetch github-fork --prune
+git rev-parse --short hygon-public/<target-branch>
 ```
 
 3. Check that the development branch name is free locally and on the fork:
 
 ```powershell
 git branch --list <dev-branch>
-git ls-remote --heads origin <dev-branch>
+git ls-remote --heads github-fork <dev-branch>
 ```
 
 If either command shows an existing branch, ask before reusing, deleting, or force-updating it.
 
-4. Create the development branch from upstream:
+4. Create the development branch from hygon-public:
 
 ```powershell
-git checkout -b <dev-branch> upstream/<target-branch>
+git checkout -b <dev-branch> hygon-public/<target-branch>
 ```
 
-5. Apply the requested code changes using the repository's existing style. Keep edits scoped to the requested fix and nearby official compatibility updates when the user provides a reference upstream commit.
+5. Apply the requested code changes using the repository's existing style. Keep edits scoped to the requested fix and nearby official compatibility updates when the user provides a reference official commit.
 
-For patches based on an official upstream commit, copy only the relevant changes for the target branch. Do not blindly cherry-pick if the branch history or surrounding code differs; inspect the local file first and adapt the minimal patch.
+For patches based on an official PyTorch commit, copy only the relevant changes for the target branch. Do not blindly cherry-pick if the branch history or surrounding code differs; inspect the local file first and adapt the minimal patch.
 
 6. Validate before committing:
 
@@ -473,23 +478,23 @@ git -c user.name=zhuyq -c user.email=zyq_bravery@163.com commit --author="zhuyq 
 9. Push only to the fork:
 
 ```powershell
-git push -u origin <dev-branch>
+git push -u github-fork <dev-branch>
 ```
 
-Do not run `git push upstream <dev-branch>`.
+Do not run `git push hygon-public <dev-branch>`.
 
 10. Final verification and handoff:
 
 ```powershell
 git status --short --branch
 git log -1 --format="commit %H%nAuthor: %an <%ae>%nCommitter: %cn <%ce>%nSubject: %s"
-git log --oneline upstream/<target-branch>..HEAD
+git log --oneline hygon-public/<target-branch>..HEAD
 ```
 
 Report:
 
 - Target branch.
-- Development branch pushed to `origin`.
+- Development branch pushed to `github-fork`.
 - Commit hash and subject.
 - Author/committer.
 - Validation commands and results.
@@ -499,5 +504,5 @@ Report:
 
 Keep future additions in this same skill:
 
-- Creating MR/PR from fork branch to upstream target branch.
+- Creating MR/PR from fork branch to hygon-public target branch.
 - Collaborating with a coworker's fork remote.
