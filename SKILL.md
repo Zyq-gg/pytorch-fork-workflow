@@ -42,6 +42,16 @@ Add only missing remotes. If a name already exists, verify both URL and intended
 
 The `origin` of this workflow-skill repository is `https://github.com/Zyq-gg/pytorch-fork-workflow.git`; it is unrelated to the PyTorch code remotes above. Editing or publishing this skill never authorizes a push to either PyTorch repository.
 
+## GitHub Connectivity
+
+On this Windows host, GitHub Git operations use the command-scoped HTTP proxy `http://127.0.0.1:7890`. Prefix every fetch, push, or remote query against `hygon-public`, `github-fork`, `official`, or this skill repository's GitHub `origin` with:
+
+```powershell
+git -c http.proxy=http://127.0.0.1:7890 <git-command>
+```
+
+Do not set `http.proxy` globally or persist it in a repository configuration. Internal GitLab remotes (`upstream` and the legacy `origin`) must remain direct and must not use this proxy.
+
 In Codex managed sandboxes, run Git commands that fetch, push, update refs, or write lock files with escalated permissions.
 
 ## Preflight
